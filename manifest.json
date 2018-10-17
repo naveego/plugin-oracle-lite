@@ -1,0 +1,68 @@
+{
+  "id": "plugin-oracle",
+  "displayName": "Oracle Database Publisher",
+  "description": "Publisher which pulls data from an Oracle Database instance.",
+  "help": "You must install the Oracle Instant Client for your platform before running the plugin. The Oracle Instant Client is available here: https://www.oracle.com/technetwork/database/database-technologies/instant-client/downloads/index.html. For more information on installing prereqs for this plugin, see here: https://oracle.github.io/odpi/doc/installation.html",
+  "versionDescription": "Version 1",
+  "version": "1.0.0",
+  "iconFile": "icon.png",
+  "executable": "plugin-oracle",
+  "kind": "publisher",
+  "os": "$GOOS",
+  "arch": "$GOARCH",
+  "canProduceMultipleSchemas": true,
+  "canAcceptQueryBasedSchemas": true,
+  "querySchema": {
+    "ui": {
+      "ui:widget": "code",
+      "ui:options": {
+        "language": "sql"
+      }
+    },
+    "schema": {
+      "type": "string"
+    }
+  },
+  "configSchema": {
+    "ui": {
+      "ui:order": [
+        "connectionString",
+        "hostname",
+        "port",
+        "serviceName",
+        "username",
+        "password"
+      ],
+      "password": {
+        "ui:widget": "password"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "server": {
+          "type": "string",
+          "title": "Hostname"
+        },
+        "port": {
+          "type": "string",
+          "title": "Database"
+        },
+        "serviceName": {
+          "type": "string",
+          "title": "ServiceName"
+        },
+        "username": {
+          "type": "string",
+          "title": "Username"
+        },
+        "password": {
+          "type": "string",
+          "title": "Password"
+        }
+      },
+      "required": [
+      ]
+    }
+  }
+}

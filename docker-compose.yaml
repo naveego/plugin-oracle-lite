@@ -1,0 +1,17 @@
+version: "2.0"
+
+services:
+  sql:
+    image: store/oracle/database:12.2.0.1-ee
+    ports:
+      - 1521:1521
+      - 5500:5500
+    environment:
+      ORACLE_SID: ORCLSTARTER
+      ORACLE_PDB: STARTERSET
+    logging:
+      driver: json-file
+
+
+
+
