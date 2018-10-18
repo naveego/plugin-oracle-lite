@@ -7,6 +7,7 @@ import (
 	"github.com/naveego/dataflow-contracts/plugins"
 	"github.com/naveego/plugin-oracle/version"
 	"os"
+	"runtime"
 )
 
 func Build() error {
@@ -19,9 +20,10 @@ func Build() error {
 			CGOEnabled: true,
 		},
 		Targets: []build.PackageTarget{
-					build.TargetLinuxAmd64,
-					//build.TargetDarwinAmd64,
-					build.TargetWindowsAmd64,
+			{
+				Arch: runtime.GOARCH,
+				OS:   runtime.GOOS,
+			},
 		},
 	}
 
