@@ -7,10 +7,26 @@ import (
 	"github.com/naveego/dataflow-contracts/plugins"
 	"github.com/naveego/plugin-oracle/version"
 	"os"
-	"runtime"
 )
 
 func Build() error {
+
+	if err := BuildLinux(); err != nil {
+		return err
+	}
+
+	if err := BuildWindows(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func BuildWindows() error {
+
+	os.Setenv("CC", "x86_64-w64-mingw32-gcc")
+	os.Setenv("CXX", "x86_64-w64-mingw32-g++")
+
 	cfg := build.PluginConfig{
 		Package: build.Package{
 			VersionString: version.Version.String(),
@@ -18,12 +34,33 @@ func Build() error {
 			Name:          "plugin-oracle",
 			Shrink:        true,
 			CGOEnabled: true,
+			BuildArgs: []string{"--ldflags", "-w -s"},
 		},
 		Targets: []build.PackageTarget{
-			{
-				Arch: runtime.GOARCH,
-				OS:   runtime.GOOS,
-			},
+			build.TargetWindowsAmd64,
+		},
+	}
+
+	err := build.BuildPlugin(cfg)
+
+	os.Unsetenv("CC")
+	os.Unsetenv("CXX")
+
+	return err
+}
+
+func BuildLinux() error {
+	cfg := build.PluginConfig{
+		Package: build.Package{
+			VersionString: version.Version.String(),
+			PackagePath:   "github.com/naveego/plugin-oracle",
+			Name:          "plugin-oracle",
+			Shrink:        true,
+			CGOEnabled: true,
+			BuildArgs: []string{"--ldflags", "-w -s"},
+		},
+		Targets: []build.PackageTarget{
+			build.TargetLinuxAmd64,
 		},
 	}
 

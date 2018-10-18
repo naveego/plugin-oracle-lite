@@ -1,10 +1,12 @@
-FROM docker.n5o.black/dev/oracle-build
+FROM golang:1.11-stretch
 
-WORKDIR /src/github.com/naveego/plugin-oracle
+
+RUN apt-get update
+RUN apt-get install mingw-w64 -y
 
 RUN go get "github.com/naveego/ci/go/build"
 RUN go get github.com/naveego/dataflow-contracts/plugins
 RUN go get github.com/magefile/mage
 
-RUN mage -v build
+
 

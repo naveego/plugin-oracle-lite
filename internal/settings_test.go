@@ -16,33 +16,37 @@ var _ = Describe("Settings", func() {
 		settings = GetTestSettings()
 	})
 
-	FDescribe("Validate", func() {
+	Describe("Validate", func() {
 
 		It("Should be ok if connection string is set", func() {
 			settings = &Settings{
-				ConnectionString: "test-connection-string",
+				StringWithPassword: &SettingsStringWithPassword{
+					ConnectionString: "test-connection-string:PASSWORD",
+					Password: "pass",
+				},
 			}
 			Expect(settings.Validate()).To(Succeed())
+			Expect(settings.GetConnectionString()).To(Equal("test-connection-string:pass"))
 		})
 
 		It("Should error if server is not set", func() {
-			settings.Hostname = ""
+			settings.Form.Hostname = ""
 			Expect(settings.Validate()).ToNot(Succeed())
 		})
 
 		It("Should error if database is not set", func() {
-			settings.Port = 0
+			settings.Form.Port = 0
 			Expect(settings.Validate()).ToNot(Succeed())
 		})
 
 
 		It("Should error if username is not set", func() {
-			settings.Username = ""
+			settings.Form.Username = ""
 			Expect(settings.Validate()).ToNot(Succeed())
 		})
 
 		It("Should error if password is not set", func() {
-			settings.Password = ""
+			settings.Form.Password = ""
 			Expect(settings.Validate()).ToNot(Succeed())
 		})
 

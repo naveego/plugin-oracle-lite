@@ -8,8 +8,8 @@
   "iconFile": "icon.png",
   "executable": "plugin-oracle",
   "kind": "publisher",
-  "os": "$GOOS",
-  "arch": "$GOARCH",
+  "os": "linux",
+  "arch": "amd64",
   "canProduceMultipleSchemas": true,
   "canAcceptQueryBasedSchemas": true,
   "querySchema": {
@@ -25,44 +25,128 @@
   },
   "configSchema": {
     "ui": {
-      "ui:order": [
-        "connectionString",
-        "hostname",
-        "port",
-        "serviceName",
-        "username",
-        "password"
-      ],
-      "password": {
-        "ui:widget": "password"
+
+      "connectionString": {
+        "ui:help": "This is provided for advanced use cases where your connection has complex configuration settings."
+      },
+      "stringWithPassword": {
+        "ui:order": ["connectionString", "password"],
+        "password": {
+          "ui:widget": "password"
+        }
+      },
+      "form": {
+        "ui:order": [
+          "hostname",
+          "port",
+          "serviceName",
+          "username",
+          "password"
+        ],
+        "password": {
+          "ui:widget":"password"
+        }
       }
     },
     "schema": {
+      "title": "Oracle Database Connection Settings",
       "type": "object",
       "properties": {
-        "server": {
+        "strategy": {
           "type": "string",
-          "title": "Hostname"
-        },
-        "port": {
-          "type": "string",
-          "title": "Database"
-        },
-        "serviceName": {
-          "type": "string",
-          "title": "ServiceName"
-        },
-        "username": {
-          "type": "string",
-          "title": "Username"
-        },
-        "password": {
-          "type": "string",
-          "title": "Password"
+          "title": "Connection Format",
+          "enum": [
+            "Form",
+            "Connection String"
+          ],
+          "enumNames": [
+            "Form - enter connection information using a form",
+            "Connection String - provide a connection string and a password"
+          ]
         }
       },
       "required": [
-      ]
+        "strategy"
+      ],
+      "dependencies": {
+        "strategy": {
+          "oneOf": [
+            {
+              "properties": {
+                "strategy": {
+                  "enum": [
+                    "Connection String"
+                  ]
+                },
+                "stringWithPassword": {
+                  "title": "Connection String",
+                  "description": "This format allows you to use a pre-defined connection string, or to provide additional parameters.",
+                  "type": "object",
+                  "properties": {
+                    "connectionString": {
+                      "type": "string",
+                      "description": "For security, replace the password in your connection string with 'PASSWORD' Enter the connection string to use, but instead of your password use 'PASSWORD'. Then provide your password in the Password field.",
+                      "title": "Connection String"
+                    },
+                    "password": {
+                      "type": "string",
+                      "description": "Enter the password. This value will be stored securely and will not be viewable by any user.",
+                      "title": "Password"
+                    }
+                  },
+                  "required": [
+                    "connectionString",
+                    "password"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "strategy": {
+                  "enum": [
+                    "Form"
+                  ]
+                },
+                "form": {
+                  "title": "Form",
+                  "description": "This format allows you to specify the connection parameters individually.",
+                  "type": "object",
+                  "properties": {
+                    "hostname": {
+                      "type": "string",
+                      "title": "Hostname"
+                    },
+                    "port": {
+                      "type": "number",
+                      "title": "Database"
+                    },
+                    "serviceName": {
+                      "type": "string",
+                      "title": "ServiceName"
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "Username"
+                    },
+                    "password": {
+                      "type": "string",
+                      "title": "Password"
+                    }
+                  },
+                  "required": [
+                    "hostname",
+                    "port",
+                    "serviceName",
+                    "username",
+                    "password"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
     }
   }
 }

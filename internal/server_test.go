@@ -45,7 +45,7 @@ var _ = Describe("Host", func() {
 		})
 
 		It("should error when connection is invalid", func() {
-			settings.Username = "a"
+			settings.Form.Username = "a"
 			_, err := sut.Connect(context.Background(), pub.NewConnectRequest(settings))
 			Expect(err).To(HaveOccurred())
 		})

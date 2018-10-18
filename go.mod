@@ -15,7 +15,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/magefile/mage v1.6.2
 	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
-	github.com/naveego/ci v0.0.0-20181017214804-5fe9130a8e6c
+	github.com/naveego/ci v0.0.0-20181018203920-7ae6fce4428c
 	github.com/naveego/dataflow-contracts v0.0.0-20181017150544-602f63501a31
 	github.com/oklog/run v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.6.0

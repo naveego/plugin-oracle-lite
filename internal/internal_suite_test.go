@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"fmt"
 	. "github.com/naveego/plugin-oracle/internal"
 	"io/ioutil"
 	"log"
@@ -27,11 +28,14 @@ func TestCsv(t *testing.T) {
 
 func GetTestSettings() *Settings {
 	return  &Settings{
-		Hostname:     "10.250.1.10",
-		Port:32769,
-		ServiceName:"ORCLCDB.localdomain",
-		Username: "C##NAVEEGO",
-		Password: "temp123",
+		Strategy:StrategyForm,
+		Form:&SettingsForm{
+			Hostname:    "10.250.1.10",
+			Port:        32769,
+			ServiceName: "ORCLCDB.localdomain",
+			Username:    "C##NAVEEGO",
+			Password:    "temp123",
+		},
 	}
 }
 
@@ -67,6 +71,11 @@ func connectToSQL() error {
 	 var connectionString string
 
 	connectionString, err = GetTestSettings().GetConnectionString()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("connectionString", connectionString)
 
 	db, err = sql.Open("goracle", connectionString)
 	if err != nil {
