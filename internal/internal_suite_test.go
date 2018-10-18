@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	. "github.com/naveego/plugin-oracle/internal"
 	"io/ioutil"
 	"log"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	. "github.com/naveego/plugin-oracle/internal"
 
 	"database/sql"
 	"github.com/naveego/ci/go/build"
@@ -42,6 +42,7 @@ var _ = BeforeSuite(func() {
 	// ldlibrarypath, ok := os.LookupEnv("LD_LIBRARY_PATH")
 	// Expect(ok).To(BeTrue(), "LD_LIBRARY_PATH must be set.")
 	// fmt.Println(ldlibrarypath)
+
 
 	Eventually(connectToSQL, time.Second*60, time.Second).Should(Succeed())
 

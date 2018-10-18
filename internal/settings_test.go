@@ -9,23 +9,17 @@ import (
 var _ = Describe("Settings", func() {
 
 	var (
-		settings Settings
+		settings *Settings
 	)
 
 	BeforeEach(func() {
-		settings = Settings{
-			Hostname:     "10.250.1.10",
-			Port:32769,
-			ServiceName: "ORCLCDB.localdomain",
-			Username: "C##NAVEEGO",
-			Password: "test123",
-		}
+		settings = GetTestSettings()
 	})
 
-	Describe("Validate", func() {
+	FDescribe("Validate", func() {
 
 		It("Should be ok if connection string is set", func() {
-			settings = Settings{
+			settings = &Settings{
 				ConnectionString: "test-connection-string",
 			}
 			Expect(settings.Validate()).To(Succeed())
