@@ -2,7 +2,7 @@ version: "2.0"
 
 services:
   sql:
-    image: store/oracle/database:12.2.0.1-ee
+    image: store/oracle/database-enterprise:12.2.0.1
     ports:
       - 1521:1521
       - 5500:5500

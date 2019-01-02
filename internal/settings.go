@@ -19,7 +19,7 @@ const StrategyForm = SettingsStrategy("Form")
 const StrategyStringWithPassword = SettingsStrategy("Connection String")
 
 type SettingsForm struct {
-	Hostname    string `json:"host"`
+	Hostname    string `json:"hostname"`
 	Port        int    `json:"port"`
 	ServiceName string `json:"serviceName"`
 	Username    string `json:"username"`

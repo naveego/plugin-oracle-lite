@@ -245,6 +245,10 @@ var _ = Describe("Host", func() {
 				It("should include sample", func() {
 					Expect(schema.Sample).To(HaveLen(2))
 				})
+
+				It("should include count", func() {
+					Expect(schema.Count).To(HaveLen(12))
+				})
 			})
 
 		})

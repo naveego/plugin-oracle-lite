@@ -475,6 +475,13 @@ func (s *Server) readRecords(ctx context.Context, req *pub.PublishRequest, out c
 		return errors.Errorf("could not build query: %v", err)
 	}
 
+	if req.Limit > 0 {
+		query = fmt.Sprintf(`SELECT SRC.* FROM (
+%s
+) SRC 
+WHERE rownum <= %d `, query, req.Limit)
+	}
+
 	rows, err := s.executeQuery(query)
 	if err != nil {
 		return errors.Errorf("error executing query %q: %v", query, err)
@@ -616,13 +623,6 @@ func buildQuery(req *pub.PublishRequest) (string, error) {
 		}
 
 		q = w.String()
-	}
-
-	if req.Limit > 0 {
-		q = fmt.Sprintf(`SELECT SRC.* FROM (
-%s
-) SRC 
-WHERE rownum <= %d `, q, req.Limit)
 	}
 
 	return q, nil

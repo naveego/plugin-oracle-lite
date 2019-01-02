@@ -21,9 +21,9 @@ import (
 
 var db *sql.DB
 
-func TestCsv(t *testing.T) {
+func TestOracle(t *testing.T) {
 	RegisterFailHandler(Fail)
-	build.RunSpecsWithReporting(t, "MSSQL Suite")
+	build.RunSpecsWithReporting(t, "Oracle Suite")
 }
 
 func GetTestSettings() *Settings {
