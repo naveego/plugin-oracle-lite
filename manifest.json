@@ -119,7 +119,7 @@
                     },
                     "port": {
                       "type": "number",
-                      "title": "Database"
+                      "title": "Port"
                     },
                     "serviceName": {
                       "type": "string",

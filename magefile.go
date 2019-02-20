@@ -3,6 +3,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/magefile/mage/sh"
 	"github.com/naveego/ci/go/build"
 	"github.com/naveego/dataflow-contracts/plugins"
 	"github.com/naveego/plugin-oracle/version"
@@ -43,8 +45,17 @@ func BuildWindows() error {
 
 	err := build.BuildPlugin(cfg)
 
+	if err != nil {
+		return err
+	}
+
 	os.Unsetenv("CC")
 	os.Unsetenv("CXX")
+
+	outZip := fmt.Sprintf("build/outputs/windows/amd64/plugin-oracle/%s/package.zip", version.Version.String())
+	finalZip := fmt.Sprintf("build/outputs/plugin-oracle_%s_windows_amd64.zip", version.Version.String())
+
+	return sh.Copy(finalZip, outZip)
 
 	return err
 }
@@ -65,6 +76,15 @@ func BuildLinux() error {
 	}
 
 	err := build.BuildPlugin(cfg)
+	if err != nil {
+		return err
+	}
+
+	outZip := fmt.Sprintf("build/outputs/linux/amd64/plugin-oracle/%s/package.zip", version.Version.String())
+	finalZip := fmt.Sprintf("build/outputs/plugin-oracle_%s_linux_amd64.zip", version.Version.String())
+
+	return sh.Copy(finalZip, outZip)
+
 	return err
 }
 

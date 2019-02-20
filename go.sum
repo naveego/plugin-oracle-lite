@@ -40,6 +40,8 @@ github.com/naveego/ci v0.0.0-20181017214804-5fe9130a8e6c h1:Gs9By0KZ8ySl0X0PUa4/
 github.com/naveego/ci v0.0.0-20181017214804-5fe9130a8e6c/go.mod h1:0JEOznyr2MKsUycZ91bxWsDDVdtzEoTWayoFod070jI=
 github.com/naveego/ci v0.0.0-20181018203920-7ae6fce4428c h1:IRgz1S021CF8X1+fritVeO63UDmm5c4r3oYvvh6JtnU=
 github.com/naveego/ci v0.0.0-20181018203920-7ae6fce4428c/go.mod h1:0JEOznyr2MKsUycZ91bxWsDDVdtzEoTWayoFod070jI=
+github.com/naveego/ci v0.0.0-20181106200225-bbe2ffc37d32 h1:LOk3+GOcJo6oxDrIJd7ZSVU5yCEtsqzNFk3/bcRyFVU=
+github.com/naveego/ci v0.0.0-20181106200225-bbe2ffc37d32/go.mod h1:0JEOznyr2MKsUycZ91bxWsDDVdtzEoTWayoFod070jI=
 github.com/naveego/dataflow-contracts v0.0.0-20180720141209-065df73460f9 h1:NXr1ZjJVj50U6Z8sDiLqqItfsOpP+6nxBu71OVgW2l0=
 github.com/naveego/dataflow-contracts v0.0.0-20180720141209-065df73460f9/go.mod h1:jPutQKPCUfouzeS2/TzsJoyPrkZPb6k6p6xjvr/tF7c=
 github.com/naveego/dataflow-contracts v0.0.0-20181016195455-eb86d72a9072 h1:HE7u8mOtm/b6PglSsOWos6NNVnoad5+X6K6DqJsyK3k=
