@@ -2,28 +2,27 @@ DROP TABLE C##NAVEEGO.Orders;
 DROP TABLE C##NAVEEGO.Customers;
 DROP TABLE C##NAVEEGO.Agents;
 DROP TABLE C##NAVEEGO.PrePost;
-
-
 DROP TABLE C##NAVEEGO.TYPES;
+
 CREATE TABLE C##NAVEEGO.TYPES
 (
-  "number"                NUMBER(16,0) NOT NULL PRIMARY KEY,
-  "float"                 BINARY_FLOAT,
-  "double"                BINARY_DOUBLE,
-  "date"                  DATE,
-  "timestamp"             TIMESTAMP,
-  "timestampWithTimeZone" TIMESTAMP WITH TIME ZONE,
-  "intervalYear4ToMonth"  INTERVAL YEAR (2) TO MONTH,
-  "intervalDay4ToSecond2" INTERVAL DAY (4) TO SECOND (2),
-  "char"                  CHAR(6),
-  "varchar2"              VARCHAR2(10),
-  "nvarchar2"             NVARCHAR2(10),
-  "nchar"                 NCHAR(6),
-  "xml"                   XMLTYPE,
-  "blob"                  BLOB,
-  "clob"                  CLOB,
-  "nclob"                 NCLOB
-);
+        "number"                NUMBER(16,0) NOT NULL PRIMARY KEY,
+        "float"                 BINARY_FLOAT,
+        "double"                BINARY_DOUBLE,
+        "date"                  DATE,
+        "timestamp"             TIMESTAMP,
+        "timestampWithTimeZone" TIMESTAMP WITH TIME ZONE,
+        "intervalYear4ToMonth"  INTERVAL YEAR (2) TO MONTH,
+        "intervalDay4ToSecond2" INTERVAL DAY (4) TO SECOND (2),
+        "char"                  CHAR(6),
+        "varchar2"              VARCHAR2(10),
+        "nvarchar2"             NVARCHAR2(10),
+        "nchar"                 NCHAR(6),
+        "xml"                   XMLTYPE,
+        "blob"                  BLOB,
+        "clob"                  CLOB,
+        "nclob"                 NCLOB
+        );
 
 
 INSERT INTO C##NAVEEGO.TYPES
@@ -42,18 +41,18 @@ VALUES (42, 123456.78, -- float
         utl_raw.cast_to_raw('blob data'),
         'clob', -- clob
         'nclobdata' --nclob
-           );
+       );
 
 CREATE TABLE C##NAVEEGO.Agents
 (
-  "AGENT_CODE"   CHAR(4) NOT NULL PRIMARY KEY,
-  "AGENT_NAME"   VARCHAR(40),
-  "WORKING_AREA" VARCHAR(35),
-  "COMMISSION"   BINARY_FLOAT,
-  "PHONE_NO"     CHAR(12),
-  "UPDATED_AT"   timestamp with time zone,
-  "BIOGRAPHY"    VARCHAR(2056)
-);
+        "AGENT_CODE"   CHAR(4) NOT NULL PRIMARY KEY,
+        "AGENT_NAME"   VARCHAR(40),
+        "WORKING_AREA" VARCHAR(35),
+        "COMMISSION"   BINARY_FLOAT,
+        "PHONE_NO"     CHAR(12),
+        "UPDATED_AT"   timestamp with time zone,
+        "BIOGRAPHY"    VARCHAR(2056)
+        );
 
 INSERT INTO C##NAVEEGO.Agents
 VALUES ('A007', 'Ramasundar', 'Bangalore', '0.15', '077-25814763', TIMESTAMP '1969-01-02 00:00:00', '');
@@ -68,7 +67,7 @@ VALUES ('A010', 'Santakumar', 'Chennai', '0.14', '007-22388644', TIMESTAMP '1969
 INSERT INTO C##NAVEEGO.Agents
 VALUES ('A012', 'Lucida', 'San Jose', '0.12', '044-52981425', TIMESTAMP '1971-01-02 00:00:00', '');
 INSERT INTO C##NAVEEGO.Agents
-VALUES ('A005', 'Anderson', 'Brisban', '0.13', '045-21447739', TIMESTAMP '1971-01-02 00:00:00', '');
+VALUES ('A005', 'Anderson', 'Brisban', null, '045-21447739', TIMESTAMP '1971-01-02 00:00:00', '');
 INSERT INTO C##NAVEEGO.Agents
 VALUES ('A001', 'Subbarao', 'Bangalore', '0.14', '077-12346674', TIMESTAMP '1971-01-02 00:00:00', '');
 INSERT INTO C##NAVEEGO.Agents
@@ -83,18 +82,18 @@ VALUES ('A009', 'Benjamin', 'Hampshair', '0.11', '008-22536178', TIMESTAMP '1971
 
 CREATE TABLE C##NAVEEGO.Customers
 (
-  "CUST_CODE"       VARCHAR(6)    NOT NULL PRIMARY KEY,
-  "CUST_NAME"       VARCHAR(40)   NOT NULL,
-  "CUST_CITY"       VARCHAR(50),
-  "WORKING_AREA"    VARCHAR(35)   NOT NULL,
-  "CUST_COUNTRY"    VARCHAR(20)   NOT NULL,
-  "GRADE"           NUMBER(6, 2),
-  "OPENING_AMT"     NUMBER(12, 2) NOT NULL,
-  "RECEIVE_AMT"     NUMBER(12, 2) NOT NULL,
-  "PAYMENT_AMT"     NUMBER(12, 2) NOT NULL,
-  "OUTSTANDING_AMT" NUMBER(12, 2) NOT NULL,
-  "PHONE_NO"        VARCHAR(17)   NOT NULL,
-  "AGENT_CODE"      CHAR(4)       NOT NULL REFERENCES C##NAVEEGO.Agents
+        "CUST_CODE"       VARCHAR(6)    NOT NULL PRIMARY KEY,
+        "CUST_NAME"       VARCHAR(40)   NOT NULL,
+        "CUST_CITY"       VARCHAR(50),
+        "WORKING_AREA"    VARCHAR(35)   NOT NULL,
+        "CUST_COUNTRY"    VARCHAR(20)   NOT NULL,
+        "GRADE"           NUMBER(6, 2),
+        "OPENING_AMT"     NUMBER(12, 2) NOT NULL,
+        "RECEIVE_AMT"     NUMBER(12, 2) NOT NULL,
+        "PAYMENT_AMT"     NUMBER(12, 2) NOT NULL,
+        "OUTSTANDING_AMT" NUMBER(12, 2) NOT NULL,
+        "PHONE_NO"        VARCHAR(17)   NOT NULL,
+        "AGENT_CODE"      CHAR(4)       NOT NULL REFERENCES C##NAVEEGO.Agents
 );
 
 
@@ -406,15 +405,15 @@ VALUES ('C00011',
 CREATE TABLE C##NAVEEGO.Orders
 (
 
-  "ORD_NUM"         NUMBER(6, 0) NOT NULL PRIMARY KEY,
-  "ORD_AMOUNT"      NUMBER(6, 2) NOT NULL,
-  "ADVANCE_AMOUNT"  NUMBER(6, 2) NOT NULL,
-  "ORD_DATE"        DATE         NOT NULL,
-  "CUST_CODE"       VARCHAR(6)   NOT NULL,
-  "AGENT_CODE"      CHAR(4)      NOT NULL,
-  "ORD_DESCRIPTION" VARCHAR(60)  NOT NULL,
-  CONSTRAINT fk_cust_code FOREIGN KEY (CUST_CODE) REFERENCES C##NAVEEGO.Customers (CUST_CODE),
-  CONSTRAINT fk_agent_code FOREIGN KEY (AGENT_CODE) REFERENCES C##NAVEEGO.Agents (AGENT_CODE)
+        "ORD_NUM"         NUMBER(6, 0) NOT NULL PRIMARY KEY,
+        "ORD_AMOUNT"      NUMBER(6, 2) NOT NULL,
+        "ADVANCE_AMOUNT"  NUMBER(6, 2) NOT NULL,
+        "ORD_DATE"        DATE         NOT NULL,
+        "CUST_CODE"       VARCHAR(6)   NOT NULL,
+        "AGENT_CODE"      CHAR(4)      NOT NULL,
+        "ORD_DESCRIPTION" VARCHAR(60)  NOT NULL,
+        CONSTRAINT fk_cust_code FOREIGN KEY (CUST_CODE) REFERENCES C##NAVEEGO.Customers (CUST_CODE),
+        CONSTRAINT fk_agent_code FOREIGN KEY (AGENT_CODE) REFERENCES C##NAVEEGO.Agents (AGENT_CODE)
 
 );
 
@@ -490,5 +489,5 @@ VALUES ('200133', '1200.00', '400.00', DATE '2008-06-29', 'C00009', 'A002', 'SOD
 
 CREATE TABLE C##NAVEEGO.PrePost
 (
-  Message varchar(50)
-)
+        Message varchar(50)
+);

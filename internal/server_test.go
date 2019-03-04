@@ -14,6 +14,7 @@ import (
 	"github.com/onsi/gomega/types"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
+	"io"
 	"os"
 )
 
@@ -67,12 +68,12 @@ var _ = Describe("Host", func() {
 
 			It("should get tables and views", func() {
 
-				response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverShapesRequest{
-					Mode: pub.DiscoverShapesRequest_ALL,
+				response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverSchemasRequest{
+					Mode: pub.DiscoverSchemasRequest_ALL,
 				})
 				Expect(err).ToNot(HaveOccurred())
 
-				shapes := response.Shapes
+				shapes := response.Schemas
 
 				var ids []string
 				for _, s := range shapes {
@@ -84,18 +85,18 @@ var _ = Describe("Host", func() {
 				Expect(ids).To(ContainElement(`"C##NAVEEGO"."CUSTOMERS"`), )
 				Expect(ids).To(ContainElement(`"C##NAVEEGO"."ORDERS"`))
 
-				Expect(shapes).To(HaveLen(6), "only tables and views should be returned")
+				Expect(shapes).To(HaveLen(5), "only tables and views should be returned")
 			})
 
 			Describe("shape details", func() {
-				var agents *pub.Shape
+				var agents *pub.Schema
 				BeforeEach(func() {
-					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverShapesRequest{
-						Mode:       pub.DiscoverShapesRequest_ALL,
+					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverSchemasRequest{
+						Mode:       pub.DiscoverSchemasRequest_ALL,
 						SampleSize: 2,
 					})
 					Expect(err).ToNot(HaveOccurred())
-					for _, s := range response.Shapes {
+					for _, s := range response.Schemas {
 						if s.Id == `"C##NAVEEGO"."AGENTS"` {
 							agents = s
 						}
@@ -156,23 +157,23 @@ var _ = Describe("Host", func() {
 		Describe("when mode is REFRESH", func() {
 
 			Describe("when shape is defined by source", func() {
-				var agentsSchema *pub.Shape
+				var agentsSchema *pub.Schema
 
 				BeforeEach(func() {
-					refreshShape := &pub.Shape{
+					refreshShape := &pub.Schema{
 						Id:   `"C##NAVEEGO"."AGENTS"`,
 						Name: "Agents",
 					}
 
-					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverShapesRequest{
-						Mode:       pub.DiscoverShapesRequest_REFRESH,
-						ToRefresh:  []*pub.Shape{refreshShape},
+					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverSchemasRequest{
+						Mode:       pub.DiscoverSchemasRequest_REFRESH,
+						ToRefresh:  []*pub.Schema{refreshShape},
 						SampleSize: 2,
 					})
 					Expect(err).ToNot(HaveOccurred())
-					shapes := response.Shapes
+					shapes := response.Schemas
 					Expect(shapes).To(HaveLen(1), "only requested shape should be returned")
-					agentsSchema = response.Shapes[0]
+					agentsSchema = response.Schemas[0]
 					Expect(agentsSchema.Errors).To(BeNil())
 				})
 
@@ -202,24 +203,24 @@ var _ = Describe("Host", func() {
 			})
 
 			Describe("when shape is defined by query", func() {
-				var schema *pub.Shape
+				var schema *pub.Schema
 
 				BeforeEach(func() {
-					refreshShape := &pub.Shape{
+					refreshShape := &pub.Schema{
 						Id:    "agent_names",
 						Name:  "Agent Names",
 						Query: "SELECT AGENT_CODE, AGENT_NAME AS Name FROM Agents",
 					}
 
-					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverShapesRequest{
-						Mode:       pub.DiscoverShapesRequest_REFRESH,
-						ToRefresh:  []*pub.Shape{refreshShape},
+					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverSchemasRequest{
+						Mode:       pub.DiscoverSchemasRequest_REFRESH,
+						ToRefresh:  []*pub.Schema{refreshShape},
 						SampleSize: 2,
 					})
 					Expect(err).ToNot(HaveOccurred())
-					shapes := response.Shapes
+					shapes := response.Schemas
 					Expect(shapes).To(HaveLen(1), "only requested shape should be returned")
-					schema = response.Shapes[0]
+					schema = response.Schemas[0]
 					Expect(schema.Errors).To(BeNil())
 				})
 
@@ -247,7 +248,7 @@ var _ = Describe("Host", func() {
 				})
 
 				It("should include count", func() {
-					Expect(schema.Count).To(HaveLen(12))
+					Expect(schema.Count.Value).To(Equal(int32(12)))
 				})
 			})
 
@@ -338,23 +339,23 @@ var _ = Describe("Host", func() {
 
 			Describe("filtering", func() {
 
-				var req *pub.PublishRequest
+				var req *pub.ReadRequest
 				BeforeEach(func() {
-					var agents *pub.Shape
+					var agents *pub.Schema
 
-					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverShapesRequest{
-						Mode:       pub.DiscoverShapesRequest_ALL,
+					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverSchemasRequest{
+						Mode:       pub.DiscoverSchemasRequest_ALL,
 						SampleSize: 2,
 					})
 					Expect(err).ToNot(HaveOccurred())
-					for _, s := range response.Shapes {
+					for _, s := range response.Schemas {
 						if s.Id == `"C##NAVEEGO"."AGENTS"` {
 							agents = s
 						}
 					}
 					Expect(agents).ToNot(BeNil())
-					req = &pub.PublishRequest{
-						Shape: agents,
+					req = &pub.ReadRequest{
+						Schema: agents,
 					}
 				})
 
@@ -382,7 +383,7 @@ var _ = Describe("Host", func() {
 						HaveKeyWithValue(`"WORKING_AREA"`, "London"),
 						HaveKeyWithValue(`"COMMISSION"`, float64(0.13)),
 						HaveKeyWithValue(`"PHONE_NO"`, "075-12458969"),
-						HaveKeyWithValue(`"UPDATED_AT"`, "1969-01-02T00:00:00-04:00"),
+						HaveKeyWithValue(`"UPDATED_AT"`, "1969-01-02T00:00:00-05:00"),
 						HaveKeyWithValue(`"BIOGRAPHY"`, ""),
 					))
 				})
@@ -432,13 +433,13 @@ var _ = Describe("Host", func() {
 
 			Describe("typing", func() {
 
-				var req *pub.PublishRequest
+				var req *pub.ReadRequest
 				BeforeEach(func() {
-					var types *pub.Shape
+					var types *pub.Schema
 
-					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverShapesRequest{
-						Mode: pub.DiscoverShapesRequest_REFRESH,
-						ToRefresh: []*pub.Shape{
+					response, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverSchemasRequest{
+						Mode: pub.DiscoverSchemasRequest_REFRESH,
+						ToRefresh: []*pub.Schema{
 							{
 								Id:   `"C##NAVEEGO"."TYPES"`,
 								Name: "Types",
@@ -448,12 +449,12 @@ var _ = Describe("Host", func() {
 					})
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(response.Shapes).To(HaveLen(1))
-					types = response.Shapes[0]
+					Expect(response.Schemas).To(HaveLen(1))
+					types = response.Schemas[0]
 					Expect(types).ToNot(BeNil())
 					Expect(types.Errors).To(Or(BeNil(), HaveLen(0)))
-					req = &pub.PublishRequest{
-						Shape: types,
+					req = &pub.ReadRequest{
+						Schema: types,
 					}
 				})
 
@@ -492,10 +493,10 @@ var _ = Describe("Host", func() {
 					It("should not be connected after disconnect", func() {
 						Expect(sut.Disconnect(context.Background(), &pub.DisconnectRequest{})).ToNot(BeNil())
 
-						_, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverShapesRequest{})
+						_, err := sut.DiscoverShapes(context.Background(), &pub.DiscoverSchemasRequest{})
 						Expect(err).To(MatchError(ContainSubstring("not connected")))
 
-						err = sut.PublishStream(&pub.PublishRequest{}, nil)
+						err = sut.PublishStream(&pub.ReadRequest{}, nil)
 						Expect(err).To(MatchError(ContainSubstring("not connected")))
 					})
 
@@ -504,7 +505,186 @@ var _ = Describe("Host", func() {
 			})
 		})
 	})
+
+	Describe("Write Backs", func() {
+
+		BeforeEach(func() {
+			Expect(sut.Connect(context.Background(), pub.NewConnectRequest(settings))).ToNot(BeNil())
+		})
+
+		Describe("ConfigureWrite", func() {
+
+			var req *pub.ConfigureWriteRequest
+			BeforeEach(func() {
+				req = &pub.ConfigureWriteRequest{}
+			})
+
+			It("should return a json form schema on the first call", func() {
+				response, err := sut.ConfigureWrite(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(response.Form).ToNot(BeNil())
+				Expect(response.Form.SchemaJson).ToNot(BeNil())
+				Expect(response.Form.UiJson).ToNot(BeNil())
+				Expect(response.Schema).To(BeNil())
+			})
+
+			It("should return a schema when a valid stored procedure is input", func() {
+				req.Form = &pub.ConfigurationFormRequest{
+					DataJson: `{"storedProcedure":"\"C##NAVEEGO\".\"TEST\""}`,
+				}
+
+				response, err := sut.ConfigureWrite(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(response.Form).ToNot(BeNil())
+				Expect(response.Schema).ToNot(BeNil())
+
+				Expect(response.Schema.Id).To(Equal("\"C##NAVEEGO\".\"TEST\""))
+				Expect(response.Schema.Query).To(Equal(`DECLARE I_AGENTID CHAR(4);I_NAME VARCHAR2(40);I_COMMISSION BINARY_FLOAT; BEGIN "C##NAVEEGO"."TEST"(:I_AGENTID,:I_NAME,:I_COMMISSION); END;`))
+				Expect(response.Schema.Properties).To(HaveLen(3))
+				Expect(response.Schema.Properties[0].Id).To(Equal("I_AGENTID"))
+				Expect(response.Schema.Properties[1].Id).To(Equal("I_NAME"))
+				Expect(response.Schema.Properties[2].Id).To(Equal("I_COMMISSION"))
+				Expect(response.Schema.Properties[2].Type).To(Equal(pub.PropertyType_FLOAT))
+			})
+
+			It("should return an error when an invalid stored procedure is input", func() {
+				req.Form = &pub.ConfigurationFormRequest{
+					DataJson: `{"storedProcedure":"NOT A PROC"}`,
+				}
+
+				response, err := sut.ConfigureWrite(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(response.Form).ToNot(BeNil())
+				Expect(response.Schema).ToNot(BeNil())
+				Expect(response.Form.Errors).To(HaveLen(1))
+				Expect(response.Form.Errors[0]).To(ContainSubstring("stored procedure does not exist"))
+			})
+		})
+
+		Describe("PrepareWrite", func() {
+
+			var req *pub.PrepareWriteRequest
+			BeforeEach(func() {
+				req = &pub.PrepareWriteRequest{
+					Schema: &pub.Schema{},
+					CommitSlaSeconds: 1,
+				}
+			})
+
+			It("should prepare the plugin to write", func() {
+				response, err := sut.PrepareWrite(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(response).ToNot(BeNil())
+			})
+		})
+
+		Describe("WriteStream", func() {
+
+			var records []*pub.Record
+			var stream *writeStream
+			var req *pub.PrepareWriteRequest
+			BeforeEach(func() {
+				req =  &pub.PrepareWriteRequest{
+					Schema: &pub.Schema{
+						Id: "TEST",
+						Query: `DECLARE I_AGENTID CHAR(4);I_NAME VARCHAR2(40);I_COMMISSION BINARY_FLOAT; BEGIN "C##NAVEEGO"."TEST"(:I_AGENTID,:I_NAME,:I_COMMISSION); END;`,
+						Properties: []*pub.Property {
+							{
+								Id: "I_AGENTID",
+							},
+							{
+								Id: "I_NAME",
+							},
+							{
+								Id: "I_COMMISSION",
+							},
+						},
+					},
+					CommitSlaSeconds: 1,
+				}
+
+				records = append(records, &pub.Record{
+					DataJson: `{"I_AGENTID":"A001","I_NAME":"TEST","I_COMMISSION":"0.14"}`,
+					CorrelationId: "test",
+				})
+
+				stream = &writeStream{
+					records: records,
+					index: 0,
+				}
+			})
+
+			It("should be able to call a stored procedure to write a record", func() {
+				response, err := sut.PrepareWrite(context.Background(), req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(response).ToNot(BeNil())
+
+				Expect(sut.WriteStream(stream)).To(Succeed())
+
+				Expect(stream.recordAcks).To(HaveLen(1))
+				Expect(stream.recordAcks[0].CorrelationId).To(Equal("test"))
+				Expect(stream.recordAcks[0].Error).To(Equal(""))
+			})
+		})
+	})
 })
+
+type writeStream struct {
+	records 	[]*pub.Record
+	recordAcks 	[]*pub.RecordAck
+	index 		int
+	err     	error
+}
+
+func (p *writeStream) Send(ack *pub.RecordAck) error {
+	if p.err != nil {
+		return p.err
+	}
+
+	p.recordAcks = append(p.recordAcks, ack)
+	return nil
+}
+
+func (p *writeStream) Recv() (*pub.Record, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+
+	if len(p.records) > p.index {
+		record := p.records[p.index]
+		p.index++
+		return record, nil
+	}
+
+	return nil, io.EOF
+}
+
+func (writeStream) SetHeader(metadata.MD) error {
+	panic("implement me")
+}
+
+func (writeStream) SendHeader(metadata.MD) error {
+	panic("implement me")
+}
+
+func (writeStream) SetTrailer(metadata.MD) {
+	panic("implement me")
+}
+
+func (writeStream) Context() context.Context {
+	panic("implement me")
+}
+
+func (writeStream) SendMsg(m interface{}) error {
+	panic("implement me")
+}
+
+func (writeStream) RecvMsg(m interface{}) error {
+	panic("implement me")
+}
 
 type publisherStream struct {
 	records []*pub.Record

@@ -2,6 +2,7 @@
   "id": "plugin-oracle",
   "displayName": "Oracle Database Publisher",
   "description": "Publisher which pulls data from an Oracle Database instance.",
+  "apiVersion": "2",
   "help": "You must install the Oracle Instant Client for your platform before running the plugin. The Oracle Instant Client is available here: https://www.oracle.com/technetwork/database/database-technologies/instant-client/downloads/index.html. For more information on installing prereqs for this plugin, see here: https://oracle.github.io/odpi/doc/installation.html",
   "versionDescription": "Version 1",
   "version": "1.0.0",
@@ -12,6 +13,8 @@
   "arch": "amd64",
   "canProduceMultipleSchemas": true,
   "canAcceptQueryBasedSchemas": true,
+  "canConfigureWrite": true,
+  "canWrite": true,
   "querySchema": {
     "ui": {
       "ui:widget": "code",
