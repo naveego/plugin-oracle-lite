@@ -277,10 +277,16 @@ type columnInfo struct {
 	DataLength            *int64 `sql:"DATA_LENGTH"`
 	DataPrecision         *int64 `sql:"DATA_PRECISION"`
 	DataScale             *int64
-	NullableChar           string
+	NullableChar          string
+	ConstraintType		  string `sql:"CONSTRAINT_TYPE"`
 }
+
 func (c columnInfo) Nullable() bool {
 	return c.NullableChar == "Y"
+}
+
+func (c columnInfo) IsKey() bool {
+	return c.ConstraintType == "P"
 }
 
 var deparameterizer = regexp.MustCompile(`\(\d+\)`)
@@ -297,8 +303,22 @@ func (s *Server) populateShapeColumns(shape *pub.Schema) (error) {
 		}
 		owner, table := strings.Trim(segs[0], `"`), strings.Trim(segs[1], `"`)
 		query = fmt.Sprintf(`SELECT 
-COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE
-FROM ALL_TAB_COLUMNS WHERE OWNER = '%s' AND TABLE_NAME = '%s'`, owner, table)
+     c.COLUMN_NAME
+	 , c.DATA_TYPE
+     , c.DATA_LENGTH
+     , c.DATA_PRECISION
+     , c.DATA_SCALE
+     , c.NULLABLE
+     , tc.CONSTRAINT_TYPE
+FROM ALL_TABLES t
+      INNER JOIN ALL_TAB_COLUMNS c ON c.OWNER = t.OWNER AND c.TABLE_NAME = t.TABLE_NAME
+      LEFT OUTER JOIN all_cons_columns ccu
+                      ON ccu.COLUMN_NAME = c.COLUMN_NAME AND ccu.TABLE_NAME = t.TABLE_NAME AND
+                         ccu.OWNER = t.OWNER
+      LEFT OUTER JOIN SYS.ALL_CONSTRAINTS tc
+                      ON tc.CONSTRAINT_NAME = ccu.CONSTRAINT_NAME AND tc.OWNER = ccu.OWNER
+WHERE t.OWNER = '%s' AND t.TABLE_NAME = '%s' AND (tc.CONSTRAINT_TYPE = 'P' OR tc.CONSTRAINT_TYPE IS NULL)
+ORDER BY t.TABLE_NAME`, owner, table)
 
 		rows, err := s.executeQuery(query)
 		if err != nil {
@@ -307,7 +327,7 @@ FROM ALL_TAB_COLUMNS WHERE OWNER = '%s' AND TABLE_NAME = '%s'`, owner, table)
 
 		for rows.Next() {
 			ci := columnInfo{}
-			err = rows.Scan(&ci.ColumnName, &ci.DataType, &ci.DataLength, &ci.DataPrecision, &ci.DataScale, &ci.NullableChar)
+			err = rows.Scan(&ci.ColumnName, &ci.DataType, &ci.DataLength, &ci.DataPrecision, &ci.DataScale, &ci.NullableChar, &ci.ConstraintType)
 			if err != nil {
 				return err
 			}
@@ -318,6 +338,7 @@ FROM ALL_TAB_COLUMNS WHERE OWNER = '%s' AND TABLE_NAME = '%s'`, owner, table)
 		if rows.Err() != nil {
 			return rows.Err()
 		}
+
 
 	} else {
 		metaQuery := fmt.Sprintf(`
@@ -405,6 +426,8 @@ ORDER BY rownum`, strings.Trim(query, ";"))
 		property.Type = convertSQLType(m)
 
 		property.IsNullable = m.Nullable()
+
+		property.IsKey = m.IsKey()
 	}
 
 	return nil
