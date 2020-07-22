@@ -97,6 +97,7 @@ func (s *Server) Connect(ctx context.Context, req *pub.ConnectRequest) (*pub.Con
 
 	s.connected = true
 	s.settings = settings
+	s.StoredProcedures = nil
 
 	// get stored procedures
 	rows, err := s.db.Query("SELECT owner, object_name FROM dba_objects WHERE object_type = 'PROCEDURE' AND oracle_maintained != 'Y' AND status = 'VALID'")
