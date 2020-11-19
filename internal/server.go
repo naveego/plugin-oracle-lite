@@ -19,6 +19,8 @@ import (
 	"strings"
 )
 
+const Custom = "Custom"
+
 type Server struct {
 	mu         *sync.Mutex
 	log        hclog.Logger
@@ -98,24 +100,27 @@ func (s *Server) Connect(ctx context.Context, req *pub.ConnectRequest) (*pub.Con
 	s.connected = true
 	s.settings = settings
 	s.StoredProcedures = nil
+	s.StoredProcedures = append(s.StoredProcedures, Custom)
 
-	// get stored procedures
-	rows, err := s.db.Query("SELECT owner, object_name FROM dba_objects WHERE object_type = 'PROCEDURE' AND oracle_maintained != 'Y' AND status = 'VALID'")
-	if err != nil {
-		return nil, errors.Errorf("could not read stored procedures from database: %s", err)
-	}
-
-	for rows.Next() {
-		var schema, name string
-		var safeName string
-		err = rows.Scan(&schema, &name)
+	if s.settings.ShouldDiscoverWrite() {
+		// get stored procedures
+		rows, err := s.db.Query("SELECT owner, object_name FROM dba_objects WHERE object_type = 'PROCEDURE' AND oracle_maintained != 'Y' AND status = 'VALID'")
 		if err != nil {
-			return nil, errors.Wrap(err, "could not read stored procedure schema")
+			return nil, errors.Errorf("could not read stored procedures from database: %s", err)
 		}
-		safeName = fmt.Sprintf(`"%s"."%s"`, schema, name)
-		s.StoredProcedures = append(s.StoredProcedures, safeName)
+
+		for rows.Next() {
+			var schema, name string
+			var safeName string
+			err = rows.Scan(&schema, &name)
+			if err != nil {
+				return nil, errors.Wrap(err, "could not read stored procedure schema")
+			}
+			safeName = fmt.Sprintf(`"%s"."%s"`, schema, name)
+			s.StoredProcedures = append(s.StoredProcedures, safeName)
+		}
+		sort.Strings(s.StoredProcedures)
 	}
-	sort.Strings(s.StoredProcedures)
 
 	s.log.Debug("Connect completed successfully.")
 
@@ -474,19 +479,56 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 
 	storedProcedures, _ := json.Marshal(s.StoredProcedures)
 	schemaJSON := fmt.Sprintf(`{
-	"type": "object",
-	"properties": {
-		"storedProcedure": {
-			"type": "string",
-			"title": "Stored Procedure Name",
-			"description": "The name of the stored procedure",
-			"enum": %s
-		}
-	},
-	"required": [
-		"storedProcedure"
-	]
-}`, storedProcedures)
+  "type": "object",
+  "properties": {
+    "storedProcedure": {
+      "type": "string",
+      "title": "Stored Procedure Name",
+      "description": "The name of the stored procedure",
+      "enum": %s
+    }
+  },
+  "required": [
+    "storedProcedure"
+  ],
+  "dependencies": {
+    "storedProcedure": {
+      "oneOf": [
+        {
+          "properties": {
+            "storedProcedure": {
+              "enum": [
+                "%s"
+              ]
+            },
+			"customName":{
+			  "type": "string",
+			  "title": "Custom Stored Procedure Name"
+			},
+            "customParameters": {
+              "type": "array",
+              "title": "Parameters",
+              "description": "Parameters for a custom defined stored procedure",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "paramName": {
+                    "type": "string",
+                    "title": "Parameter Name"
+                  },
+                  "paramType": {
+                    "type": "string",
+                    "title": "Parameter Type"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}`, storedProcedures, Custom)
 
 	// first request return ui json schema form
 	if req.Form == nil || req.Form.DataJson == "" {
@@ -496,6 +538,7 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 				DataErrorsJson: "",
 				Errors:         nil,
 				SchemaJson: schemaJSON ,
+				UiJson: "",
 				StateJson: "",
 			},
 			Schema: nil,
@@ -510,6 +553,7 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 	var sprocSchema, sprocName string
 	var err error
 	found := false
+	var schemaId string
 	var schemaParams strings.Builder
 	var schemaProc strings.Builder
 	var schemaProcOut string
@@ -530,31 +574,46 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 	for _, safeProc := range s.StoredProcedures {
 		if safeProc == formData.StoredProcedure {
 			found = true
+			s.log.Info("found stored procedure", "stored procedure", safeProc)
 			continue
 		}
 	}
 
-	if !found {
+	if !found && formData.StoredProcedure != Custom {
 		errArray = append(errArray, "stored procedure does not exist")
 		goto Done
 	}
 
-	sprocSchema, sprocName = decomposeSafeName(formData.StoredProcedure)
-	schemaProc.WriteString(fmt.Sprintf("%s(", formData.StoredProcedure))
+	schemaId = formData.StoredProcedure
+	if formData.StoredProcedure == Custom {
+		schemaId = formData.CustomName
+		s.log.Info("found custom stored procedure", "stored procedure", schemaId)
+	}
+
+	sprocSchema, sprocName = decomposeSafeName(schemaId)
+	schemaProc.WriteString(fmt.Sprintf("%s(", schemaId))
+
+	s.log.Info("got decomposed schema name", "owner", sprocSchema, "object name", sprocName)
 
 	// get params for stored procedure
 	query = `SELECT ARGUMENT_NAME, DATA_TYPE, DATA_LENGTH FROM ALL_ARGUMENTS WHERE owner = :owner and object_name = :name`
 	stmt, err = s.db.Prepare(query)
 	if err != nil {
+		s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
 		errArray = append(errArray, fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
-		goto Done
+		goto CustomProperties
 	}
+
+	s.log.Info("prepared query", "query", query)
 
 	rows, err = stmt.Query(sql.Named("owner", sprocSchema), sql.Named("name", sprocName))
 	if err != nil {
+		s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
 		errArray = append(errArray, fmt.Sprintf("error getting parameters for stored procedure: %s", err))
-		goto Done
+		goto CustomProperties
 	}
+
+	s.log.Info("got rows for query", "query", query)
 
 	// add all params to properties of schema
 	for rows.Next() {
@@ -563,6 +622,7 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 
 		err := rows.Scan(&colName, &colType, &length)
 		if err != nil {
+			s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
 			errArray = append(errArray, fmt.Sprintf("error getting parameters for stored procedure: %s", err))
 			goto Done
 		}
@@ -582,10 +642,30 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 		schemaProc.WriteString(fmt.Sprintf(":%s,", colName))
 	}
 
+	CustomProperties:
+	if len(properties) == 0 {
+		// attempt to apply user defined parameters if query does not work
+		if len(formData.CustomParameters) > 0 {
+			s.log.Info("building schema from custom parameters")
+			for _, param := range formData.CustomParameters {
+				properties = append(properties, &pub.Property{
+					Id:           param.ParamName,
+					Name:         param.ParamType,
+					TypeAtSource: param.ParamType,
+					Type:         convertFromSQLType(param.ParamType, 0),
+				})
+
+				schemaParams.WriteString(fmt.Sprintf("%s %s", param.ParamName, param.ParamType))
+				schemaParams.WriteString(";")
+				schemaProc.WriteString(fmt.Sprintf(":%s,", param.ParamName))
+			}
+		}
+	}
+
+	Done:
 	schemaParamsOut = schemaParams.String()
 	schemaProcOut = fmt.Sprintf("%s);", strings.TrimSuffix(schemaProc.String(), ","))
 
-Done:
 	// return write back schema
 	return &pub.ConfigureWriteResponse{
 		Form: &pub.ConfigurationFormResponse{
@@ -595,7 +675,7 @@ Done:
 			SchemaJson:schemaJSON,
 		},
 		Schema: &pub.Schema{
-			Id:         formData.StoredProcedure,
+			Id:         schemaId,
 			Query:      fmt.Sprintf("DECLARE %s BEGIN %s END;", schemaParamsOut, schemaProcOut),
 			DataFlowDirection: pub.Schema_WRITE,
 			Properties: properties,
@@ -605,6 +685,13 @@ Done:
 
 type ConfigureWriteFormData struct {
 	StoredProcedure string `json:"storedProcedure,omitempty"`
+	CustomName string `json:"customName,omitempty"`
+	CustomParameters []Parameter `json:"customParameters,omitempty"`
+}
+
+type Parameter struct {
+	ParamName string `json:"paramName"`
+	ParamType string `json:"paramType"`
 }
 
 // PrepareWrite sets up the plugin to be able to write back

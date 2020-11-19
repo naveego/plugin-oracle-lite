@@ -4,8 +4,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-hclog"
+	"github.com/lestrrat-go/file-rotatelogs"
+	"io"
+	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/hashicorp/go-plugin"
 	"github.com/naveego/dataflow-contracts/plugins"
@@ -25,11 +30,20 @@ var RootCmd = &cobra.Command{
 Runs the publisher in externally controlled mode.`, version.Version.String()),
 	Run: func(cmd *cobra.Command, args []string)  {
 
+		logf, err := rotatelogs.New(
+			"./log.%Y%m%d%H%M%S",
+			// rotatelogs.WithLinkName("./log"),
+			rotatelogs.WithMaxAge(7 * 24 * time.Hour),
+			rotatelogs.WithRotationTime(time.Hour),
+		)
+		if err != nil {
+			recordCrashFile( fmt.Sprintf("Could not create log file: %s", err))
+		}
+
 		log := hclog.New(&hclog.LoggerOptions{
 			Level:      hclog.Trace,
-			Output:     os.Stderr,
-			JSONFormat: false,
-			Name: "plugin-oracle",
+			Output:     io.MultiWriter(os.Stderr, logf),
+			JSONFormat: true,
 		})
 
 		plugin.Serve(&plugin.ServeConfig{
@@ -59,4 +73,9 @@ func Execute() {
 
 func init() {
 	verbose = RootCmd.Flags().BoolP("verbose", "v", false, "enable verbose logging")
+}
+
+func recordCrashFile(message string) {
+	startupFailureErrorPath := fmt.Sprintf("./crash-%d-%s.log", time.Now().Unix(), uuid.New().String())
+	_ = ioutil.WriteFile(startupFailureErrorPath, []byte(message), 0666)
 }
