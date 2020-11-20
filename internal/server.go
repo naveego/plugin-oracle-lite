@@ -505,6 +505,10 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 			  "type": "string",
 			  "title": "Custom Stored Procedure Name"
 			},
+			"customFullName":{
+			  "type": "string",
+			  "title": "Fully Qualified Custom Stored Procedure Name"
+			},
             "customParameters": {
               "type": "array",
               "title": "Parameters",
@@ -591,6 +595,10 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 	}
 
 	sprocSchema, sprocName = decomposeSafeName(schemaId)
+
+	if formData.CustomFullName != "" {
+		schemaId = formData.CustomFullName
+	}
 	schemaProc.WriteString(fmt.Sprintf("%s(", schemaId))
 
 	s.log.Info("got decomposed schema name", "owner", sprocSchema, "object name", sprocName)
@@ -689,6 +697,7 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 type ConfigureWriteFormData struct {
 	StoredProcedure string `json:"storedProcedure,omitempty"`
 	CustomName string `json:"customName,omitempty"`
+	CustomFullName string `json:"customFullName,omitempty"`
 	CustomParameters []Parameter `json:"customParameters,omitempty"`
 }
 
