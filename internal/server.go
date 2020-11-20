@@ -638,6 +638,9 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 		if length != nil {
 			schemaParams.WriteString(fmt.Sprintf("(%s)", length))
 		}
+		if length == nil && strings.Contains(colType, "VARCHAR2") {
+			schemaParams.WriteString("(32767)")
+		}
 		schemaParams.WriteString(";")
 		schemaProc.WriteString(fmt.Sprintf(":%s,", colName))
 	}
