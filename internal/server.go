@@ -604,7 +604,7 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 	s.log.Info("got decomposed schema name", "owner", sprocSchema, "object name", sprocName)
 
 	// get params for stored procedure
-	query = `SELECT ARGUMENT_NAME, DATA_TYPE, DATA_LENGTH, SEQUENCE FROM ALL_ARGUMENTS WHERE owner = :owner and object_name = :name order by SEQUENCE`
+	query = `SELECT ARGUMENT_NAME, DATA_TYPE, DATA_LENGTH, SEQUENCE FROM ALL_ARGUMENTS WHERE owner = :owner and object_name = :name order by SEQUENCE ASC`
 	stmt, err = s.db.Prepare(query)
 	if err != nil {
 		s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
@@ -669,7 +669,7 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 
 				schemaParams.WriteString(fmt.Sprintf("%s %s", param.ParamName, param.ParamType))
 				schemaParams.WriteString(";")
-				schemaProc.WriteString(fmt.Sprintf(":%s,", param.ParamName))
+				schemaProc.WriteString(fmt.Sprintf("%s=>:%s,", param.ParamName, param.ParamName))
 			}
 		}
 	}
