@@ -554,7 +554,7 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 	var properties []*pub.Property
 	var stmt *sql.Stmt
 	var rows *sql.Rows
-	var sprocSchema, sprocName string
+	var sprocSchema, sprocName, sprocPkg string
 	var err error
 	found := false
 	var schemaId string
@@ -604,24 +604,49 @@ func (s *Server) ConfigureWrite(ctx context.Context, req *pub.ConfigureWriteRequ
 	s.log.Info("got decomposed schema name", "owner", sprocSchema, "object name", sprocName)
 
 	// get params for stored procedure
-	query = `SELECT ARGUMENT_NAME, DATA_TYPE, DATA_LENGTH, SEQUENCE FROM ALL_ARGUMENTS WHERE owner = :owner and object_name = :name order by SEQUENCE ASC`
-	stmt, err = s.db.Prepare(query)
-	if err != nil {
-		s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
-		errArray = append(errArray, fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
-		goto CustomProperties
+	if formData.CustomFullName != "" {
+		sprocSchema, sprocPkg, sprocName = decomposeSafePackageName(formData.CustomFullName)
+
+		query = `SELECT ARGUMENT_NAME, DATA_TYPE, DATA_LENGTH, SEQUENCE FROM ALL_ARGUMENTS WHERE OWNER = :owner and OBJECT_NAME = :name and PACKAGE_NAME = :pkg order by SEQUENCE ASC`
+		stmt, err = s.db.Prepare(query)
+		if err != nil {
+			s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
+			errArray = append(errArray, fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
+			goto CustomProperties
+		}
+
+		s.log.Info("prepared query", "query", query)
+
+		rows, err = stmt.Query(sql.Named("owner", sprocSchema), sql.Named("name", sprocName), sql.Named("pkg", sprocPkg))
+		if err != nil {
+			s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
+			errArray = append(errArray, fmt.Sprintf("error getting parameters for stored procedure: %s", err))
+			goto CustomProperties
+		}
+
+		s.log.Info("got rows for query", "query", query)
+
+	} else {
+		query = `SELECT ARGUMENT_NAME, DATA_TYPE, DATA_LENGTH, SEQUENCE FROM ALL_ARGUMENTS WHERE OWNER = :owner and OBJECT_NAME = :name order by SEQUENCE ASC`
+		stmt, err = s.db.Prepare(query)
+		if err != nil {
+			s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
+			errArray = append(errArray, fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
+			goto CustomProperties
+		}
+
+		s.log.Info("prepared query", "query", query)
+
+		rows, err = stmt.Query(sql.Named("owner", sprocSchema), sql.Named("name", sprocName))
+		if err != nil {
+			s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
+			errArray = append(errArray, fmt.Sprintf("error getting parameters for stored procedure: %s", err))
+			goto CustomProperties
+		}
+
+		s.log.Info("got rows for query", "query", query)
 	}
 
-	s.log.Info("prepared query", "query", query)
-
-	rows, err = stmt.Query(sql.Named("owner", sprocSchema), sql.Named("name", sprocName))
-	if err != nil {
-		s.log.Error(fmt.Sprintf("error preparing to get parameters for stored procedure: %s", err))
-		errArray = append(errArray, fmt.Sprintf("error getting parameters for stored procedure: %s", err))
-		goto CustomProperties
-	}
-
-	s.log.Info("got rows for query", "query", query)
 
 	// add all params to properties of schema
 	for rows.Next() {
@@ -1060,6 +1085,16 @@ func decomposeSafeName(safeName string) (schema, name string) {
 		return strings.Trim(segs[0], `""`), strings.Trim(segs[1], `""`)
 	default:
 		return "", ""
+	}
+}
+
+func decomposeSafePackageName(safeName string) (schema, pkg, name string) {
+	segs := strings.Split(safeName, ".")
+	switch len(segs) {
+	case 3:
+		return strings.Trim(segs[0], `""`), strings.Trim(segs[1], `""`), strings.Trim(segs[2], `""`)
+	default:
+		return "", "", ""
 	}
 }
 
