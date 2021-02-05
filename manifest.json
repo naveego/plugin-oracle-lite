@@ -33,7 +33,7 @@
         "ui:help": "This is provided for advanced use cases where your connection has complex configuration settings."
       },
       "stringWithPassword": {
-        "ui:order": ["connectionString", "password", "writeDiscovery"],
+        "ui:order": ["connectionString", "password", "writeDiscovery", "disableDiscoverAllSchemas"],
         "password": {
           "ui:widget": "password"
         }
@@ -45,7 +45,8 @@
           "serviceName",
           "username",
           "password",
-          "writeDiscovery"
+          "writeDiscovery",
+          "disableDiscoverAllSchemas"
         ],
         "password": {
           "ui:widget":"password"
@@ -102,6 +103,12 @@
                       "description": "Enables the auto discovery of outputs.",
                       "default": true,
                       "title": "Enable Output Discovery"
+                    },
+                    "disableDiscoverAllSchemas": {
+                      "type": "boolean",
+                      "description": "Disables the discovery of all schemas.",
+                      "default": false,
+                      "title": "Disable All Schemas Discovery"
                     }
                   },
                   "required": [
@@ -148,6 +155,12 @@
                       "description": "Enables the auto discovery of outputs.",
                       "default": true,
                       "title": "Enable Output Discovery"
+                    },
+                    "disableDiscoverAllSchemas": {
+                      "type": "boolean",
+                      "description": "Disables the discovery of all schemas.",
+                      "default": false,
+                      "title": "Disable All Schemas Discovery"
                     }
                   },
                   "required": [

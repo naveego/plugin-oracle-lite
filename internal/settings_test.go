@@ -23,10 +23,12 @@ var _ = Describe("Settings", func() {
 				StringWithPassword: &SettingsStringWithPassword{
 					ConnectionString: "test-connection-string:PASSWORD",
 					Password: "pass",
+					DisableDiscoverAllSchemas: true,
 				},
 			}
 			Expect(settings.Validate()).To(Succeed())
 			Expect(settings.GetConnectionString()).To(Equal("test-connection-string:pass"))
+			Expect(settings.ShouldDisableDiscoverAll()).To(Equal(true))
 		})
 
 		It("Should error if server is not set", func() {
@@ -53,7 +55,5 @@ var _ = Describe("Settings", func() {
 		It("Should succeed if settings are valid for sql", func() {
 			Expect(settings.Validate()).To(Succeed())
 		})
-
-
 	})
 })

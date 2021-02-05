@@ -139,12 +139,14 @@ func (s *Server) DiscoverSchemas(ctx context.Context, req *pub.DiscoverSchemasRe
 	var err error
 
 	if req.Mode == pub.DiscoverSchemasRequest_ALL {
-		s.log.Debug("Discovering all tables and views...")
-		shapes, err = s.getAllShapesFromSchema()
-		s.log.Debug("Discovered tables and views.", "count", len(shapes))
+		if !s.settings.ShouldDisableDiscoverAll() {
+			s.log.Debug("Discovering all tables and views...")
+			shapes, err = s.getAllShapesFromSchema()
+			s.log.Debug("Discovered tables and views.", "count", len(shapes))
 
-		if err != nil {
-			return nil, errors.Errorf("could not load tables and views from SQL: %s", err)
+			if err != nil {
+				return nil, errors.Errorf("could not load tables and views from SQL: %s", err)
+			}
 		}
 	} else {
 		s.log.Debug("Refreshing schemas from request.", "count", len(req.ToRefresh))

@@ -83,11 +83,11 @@ i_Name IN C##NAVEEGO.AGENTS.AGENT_NAME%TYPE,
 i_Commission IN C##NAVEEGO.AGENTS.COMMISSION%TYPE)
 AS
 BEGIN
-        UPDATE C##NAVEEGO.Agents
-        SET AGENT_NAME = i_Name,
-            COMMISSION = i_Commission
-        WHERE AGENT_CODE = i_AgentId;
-        COMMIT;
+      UPDATE C##NAVEEGO.Agents
+      SET AGENT_NAME = i_Name,
+          COMMISSION = i_Commission
+      WHERE AGENT_CODE = i_AgentId;
+      COMMIT;
 END;`
 	_, err = db.Exec(cmd)
 	if err != nil {
@@ -101,7 +101,7 @@ i_Name IN "C##NAVEEGO"."AGENTS".AGENT_NAME%TYPE,
 i_Commission IN "C##NAVEEGO"."AGENTS".COMMISSION%TYPE)
 AS
 BEGIN
-            "C##NAVEEGO"."TEST"(i_AgentId, i_Name, i_Commission);
+          "C##NAVEEGO"."TEST"(i_AgentId, i_Name, i_Commission);
 END;`
 	_, err = db.Exec(cmd)
 	if err != nil {

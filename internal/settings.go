@@ -19,18 +19,20 @@ const StrategyForm = SettingsStrategy("Form")
 const StrategyStringWithPassword = SettingsStrategy("Connection String")
 
 type SettingsForm struct {
-	Hostname    string `json:"hostname"`
-	Port        int    `json:"port"`
-	ServiceName string `json:"serviceName"`
-	Username    string `json:"username"`
-	Password    string `json:"password"`
-	WriteDiscovery bool `json:"writeDiscovery"`
+	Hostname                  string `json:"hostname"`
+	Port                      int    `json:"port"`
+	ServiceName               string `json:"serviceName"`
+	Username                  string `json:"username"`
+	Password                  string `json:"password"`
+	WriteDiscovery            bool   `json:"writeDiscovery"`
+	DisableDiscoverAllSchemas bool   `json:"disableDiscoverAllSchemas"`
 }
 
 type SettingsStringWithPassword struct {
-	ConnectionString string `json:"connectionString"`
-	Password         string `json:"password"`
-	WriteDiscovery bool `json:"writeDiscovery"`
+	ConnectionString          string `json:"connectionString"`
+	Password                  string `json:"password"`
+	WriteDiscovery            bool   `json:"writeDiscovery"`
+	DisableDiscoverAllSchemas bool   `json:"disableDiscoverAllSchemas"`
 }
 
 // Validate returns an error if the Settings are not valid.
@@ -131,6 +133,18 @@ func (s *Settings) GetConnectionString() (string, error) {
 		return "", errors.Errorf("unrecognized strategy %q", s.Strategy)
 	}
 
+}
+
+func (s *Settings) ShouldDisableDiscoverAll() bool {
+	switch s.Strategy {
+	case StrategyForm:
+		return s.Form.DisableDiscoverAllSchemas
+	case StrategyStringWithPassword:
+		return s.StringWithPassword.DisableDiscoverAllSchemas
+
+	default:
+		return false
+	}
 }
 
 func (s *Settings) ShouldDiscoverWrite() bool {
