@@ -10,8 +10,7 @@ builds:
       - CXX=x86_64-w64-mingw32-g++
     main: main.go
     goos:
-      - darwin
-      - linux
+      # - linux
       - windows
     goarch:
       - amd64
