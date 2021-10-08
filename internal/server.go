@@ -102,11 +102,14 @@ func (s *Server) Connect(ctx context.Context, req *pub.ConnectRequest) (*pub.Con
 	s.StoredProcedures = nil
 	s.StoredProcedures = append(s.StoredProcedures, Custom)
 
+	var connectionResponse = new(pub.ConnectResponse)
+
 	if s.settings.ShouldDiscoverWrite() {
 		// get stored procedures
 		rows, err := s.db.Query("SELECT owner, object_name FROM dba_objects WHERE object_type = 'PROCEDURE' AND oracle_maintained != 'Y' AND status = 'VALID'")
 		if err != nil {
-			return nil, errors.Errorf("could not read stored procedures from database: %s", err)
+			connectionResponse.ConnectionError = fmt.Sprintf("could not read stored procedures from database: %s",err)
+			return connectionResponse, nil
 		}
 
 		for rows.Next() {
@@ -114,7 +117,8 @@ func (s *Server) Connect(ctx context.Context, req *pub.ConnectRequest) (*pub.Con
 			var safeName string
 			err = rows.Scan(&schema, &name)
 			if err != nil {
-				return nil, errors.Wrap(err, "could not read stored procedure schema")
+				connectionResponse.ConnectionError = fmt.Sprintf("could not read stored procedure schema: %s",err)
+				return connectionResponse, nil
 			}
 			safeName = fmt.Sprintf(`"%s"."%s"`, schema, name)
 			s.StoredProcedures = append(s.StoredProcedures, safeName)
@@ -124,7 +128,7 @@ func (s *Server) Connect(ctx context.Context, req *pub.ConnectRequest) (*pub.Con
 
 	s.log.Debug("Connect completed successfully.")
 
-	return new(pub.ConnectResponse), err
+	return connectionResponse, err
 }
 
 
