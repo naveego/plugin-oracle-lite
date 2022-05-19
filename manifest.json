@@ -1,7 +1,7 @@
 {
   "id": "plugin-oracle",
-  "displayName": "Oracle Database Publisher",
-  "description": "Publisher which pulls data from an Oracle Database instance.",
+  "displayName": "Oracle Database Publisher Lite",
+  "description": "Publisher which pulls data from an Oracle Database instance with no automated discovery.",
   "apiVersion": "2",
   "help": "You must install the Oracle Instant Client for your platform before running the plugin. The Oracle Instant Client is available here: https://www.oracle.com/technetwork/database/database-technologies/instant-client/downloads/index.html. For more information on installing prereqs for this plugin, see here: https://oracle.github.io/odpi/doc/installation.html",
   "versionDescription": "Version 1",
@@ -13,8 +13,8 @@
   "arch": "amd64",
   "canProduceMultipleSchemas": true,
   "canAcceptQueryBasedSchemas": true,
-  "canConfigureWrite": true,
-  "canWrite": true,
+  "canConfigureWrite": false,
+  "canWrite": false,
   "querySchema": {
     "ui": {
       "ui:widget": "code",
@@ -33,7 +33,7 @@
         "ui:help": "This is provided for advanced use cases where your connection has complex configuration settings."
       },
       "stringWithPassword": {
-        "ui:order": ["connectionString", "password", "writeDiscovery", "disableDiscoverAllSchemas"],
+        "ui:order": ["connectionString", "password"],
         "password": {
           "ui:widget": "password"
         }
@@ -44,9 +44,7 @@
           "port",
           "serviceName",
           "username",
-          "password",
-          "writeDiscovery",
-          "disableDiscoverAllSchemas"
+          "password"
         ],
         "password": {
           "ui:widget":"password"
@@ -97,18 +95,6 @@
                       "type": "string",
                       "description": "Enter the password. This value will be stored securely and will not be viewable by any user.",
                       "title": "Password"
-                    },
-                    "writeDiscovery": {
-                      "type": "boolean",
-                      "description": "Enables the auto discovery of outputs.",
-                      "default": true,
-                      "title": "Enable Output Discovery"
-                    },
-                    "disableDiscoverAllSchemas": {
-                      "type": "boolean",
-                      "description": "Disables the discovery of all schemas.",
-                      "default": false,
-                      "title": "Disable All Schemas Discovery"
                     }
                   },
                   "required": [
@@ -149,18 +135,6 @@
                     "password": {
                       "type": "string",
                       "title": "Password"
-                    },
-                    "writeDiscovery": {
-                      "type": "boolean",
-                      "description": "Enables the auto discovery of outputs.",
-                      "default": true,
-                      "title": "Enable Output Discovery"
-                    },
-                    "disableDiscoverAllSchemas": {
-                      "type": "boolean",
-                      "description": "Disables the discovery of all schemas.",
-                      "default": false,
-                      "title": "Disable All Schemas Discovery"
                     }
                   },
                   "required": [

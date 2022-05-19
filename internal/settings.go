@@ -24,15 +24,11 @@ type SettingsForm struct {
 	ServiceName               string `json:"serviceName"`
 	Username                  string `json:"username"`
 	Password                  string `json:"password"`
-	WriteDiscovery            bool   `json:"writeDiscovery"`
-	DisableDiscoverAllSchemas bool   `json:"disableDiscoverAllSchemas"`
 }
 
 type SettingsStringWithPassword struct {
 	ConnectionString          string `json:"connectionString"`
 	Password                  string `json:"password"`
-	WriteDiscovery            bool   `json:"writeDiscovery"`
-	DisableDiscoverAllSchemas bool   `json:"disableDiscoverAllSchemas"`
 }
 
 // Validate returns an error if the Settings are not valid.
@@ -136,25 +132,9 @@ func (s *Settings) GetConnectionString() (string, error) {
 }
 
 func (s *Settings) ShouldDisableDiscoverAll() bool {
-	switch s.Strategy {
-	case StrategyForm:
-		return s.Form.DisableDiscoverAllSchemas
-	case StrategyStringWithPassword:
-		return s.StringWithPassword.DisableDiscoverAllSchemas
-
-	default:
-		return false
-	}
+	return true
 }
 
 func (s *Settings) ShouldDiscoverWrite() bool {
-	switch s.Strategy {
-	case StrategyForm:
-		return s.Form.WriteDiscovery
-	case StrategyStringWithPassword:
-		return s.StringWithPassword.WriteDiscovery
-
-	default:
-		return true
-	}
+	return false
 }
