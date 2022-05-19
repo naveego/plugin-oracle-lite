@@ -33,7 +33,7 @@ func BuildWindows() error {
 		Package: build.Package{
 			VersionString: version.Version.String(),
 			PackagePath:   "github.com/naveego/plugin-oracle",
-			Name:          "plugin-oracle",
+			Name:          "plugin-oracle-lite",
 			Shrink:        true,
 			CGOEnabled: true,
 			BuildArgs: []string{"--ldflags", "-w -s"},
@@ -52,8 +52,8 @@ func BuildWindows() error {
 	os.Unsetenv("CC")
 	os.Unsetenv("CXX")
 
-	outZip := fmt.Sprintf("build/outputs/windows/amd64/plugin-oracle/%s/package.zip", version.Version.String())
-	finalZip := fmt.Sprintf("build/outputs/plugin-oracle_%s_windows_amd64.zip", version.Version.String())
+	outZip := fmt.Sprintf("build/outputs/windows/amd64/plugin-oracle-lite/%s/package.zip", version.Version.String())
+	finalZip := fmt.Sprintf("build/outputs/plugin-oracle-lite_%s_windows_amd64.zip", version.Version.String())
 
 	return sh.Copy(finalZip, outZip)
 
@@ -65,7 +65,7 @@ func BuildLinux() error {
 		Package: build.Package{
 			VersionString: version.Version.String(),
 			PackagePath:   "github.com/naveego/plugin-oracle",
-			Name:          "plugin-oracle",
+			Name:          "plugin-oracle-lite",
 			Shrink:        true,
 			CGOEnabled: true,
 			BuildArgs: []string{"--ldflags", "-w -s"},
@@ -80,8 +80,8 @@ func BuildLinux() error {
 		return err
 	}
 
-	outZip := fmt.Sprintf("build/outputs/linux/amd64/plugin-oracle/%s/package.zip", version.Version.String())
-	finalZip := fmt.Sprintf("build/outputs/plugin-oracle_%s_linux_amd64.zip", version.Version.String())
+	outZip := fmt.Sprintf("build/outputs/linux/amd64/plugin-oracle-lite/%s/package.zip", version.Version.String())
+	finalZip := fmt.Sprintf("build/outputs/plugin-oracle-lite_%s_linux_amd64.zip", version.Version.String())
 
 	return sh.Copy(finalZip, outZip)
 
