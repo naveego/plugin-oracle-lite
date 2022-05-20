@@ -10,6 +10,7 @@ dist/**/*
 # Build outputs
 build/outputs
 build/oracle
+build/docker
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
