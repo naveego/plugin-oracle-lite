@@ -1,8 +1,5 @@
 # GO Version 1.13.15
-FROM golang:1.13.15-stretch
-
-# Build Args
-ARG GITHUB_TOKEN="token"
+FROM golang:1.13.15-stretch AS build-stage
 
 # ENV Variables
 ENV GO111MODULE=on
@@ -17,23 +14,17 @@ RUN wget -c https://github.com/magefile/mage/releases/download/v1.13.0/mage_1.13
 RUN tar -xzf mage_1.13.0_Linux-ARM64.tar.gz -C /go/bin/
 RUN mage --version
 
-# Install goreleaser
-WORKDIR /tmp
-RUN wget -c https://github.com/goreleaser/goreleaser/releases/download/v1.9.0/goreleaser_Linux_x86_64.tar.gz
-RUN tar -xzf goreleaser_Linux_x86_64.tar.gz -C /go/bin/
-RUN goreleaser --version
-
 # Load files to build
 WORKDIR /build
 COPY . ./
 
-RUN ls -la
-
-#RUN mage BuildWindows
-#RUN ls build
-
 # build files
-RUN goreleaser --rm-dist
+#RUN goreleaser --rm-dist
+RUN mage Build
 
+# Prepare Output
+FROM scratch AS export-stage
+WORKDIR /
+COPY --from=build-stage /build/build .
 
 
