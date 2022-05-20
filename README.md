@@ -1,4 +1,4 @@
-# Oracle plugin for Go-between
+# Oracle plugin Lite for Go-between
 
 
 This plugin requires Oracle Instant Client files to be available in order to run.
@@ -9,6 +9,11 @@ tests are here: https://oracle.github.io/odpi/doc/installation.html
 Because setting the build server up to build and test this will be a pain, 
 thanks to Oracle, it's not done yet. You'll need to build, test and deploy
 any changes yourself.
+
+## Build using docker
+```
+docker build --output type=local,dest=.\build\docker -f Dockerfile .
+```
 
 ## Build and deploy
 

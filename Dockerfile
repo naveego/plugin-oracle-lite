@@ -26,5 +26,3 @@ RUN mage Build
 FROM scratch AS export-stage
 WORKDIR /
 COPY --from=build-stage /build/build .
-
-
