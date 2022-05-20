@@ -10,6 +10,11 @@ Because setting the build server up to build and test this will be a pain,
 thanks to Oracle, it's not done yet. You'll need to build, test and deploy
 any changes yourself.
 
+## Build using docker
+```
+docker build --output type=local,dest=.\build\docker -f Dockerfile .
+```
+
 ## Build and deploy
 
 To build for a platform, run `mage buildLinux` or `mage buildWindows` (see note below about building Windows).
