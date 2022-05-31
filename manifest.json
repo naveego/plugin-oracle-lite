@@ -28,14 +28,24 @@
   },
   "configSchema": {
     "ui": {
-
       "connectionString": {
         "ui:help": "This is provided for advanced use cases where your connection has complex configuration settings."
       },
       "stringWithPassword": {
-        "ui:order": ["connectionString", "password"],
+        "ui:order": [
+          "connectionString",
+          "password",
+          "writeDiscovery",
+          "disableDiscoverAllSchemas"
+        ],
         "password": {
           "ui:widget": "password"
+        },
+        "writeDiscovery": {
+          "ui:disabled": true
+        },
+        "disableDiscoverAllSchemas": {
+          "ui:disabled": true
         }
       },
       "form": {
@@ -44,10 +54,18 @@
           "port",
           "serviceName",
           "username",
-          "password"
+          "password",
+          "writeDiscovery",
+          "disableDiscoverAllSchemas"
         ],
         "password": {
-          "ui:widget":"password"
+          "ui:widget": "password"
+        },
+        "writeDiscovery": {
+          "ui:disabled": true
+        },
+        "disableDiscoverAllSchemas": {
+          "ui:disabled": true
         }
       }
     },
@@ -58,28 +76,21 @@
         "strategy": {
           "type": "string",
           "title": "Connection Format",
-          "enum": [
-            "Form",
-            "Connection String"
-          ],
+          "enum": ["Form", "Connection String"],
           "enumNames": [
             "Form - enter connection information using a form",
             "Connection String - provide a connection string and a password"
           ]
         }
       },
-      "required": [
-        "strategy"
-      ],
+      "required": ["strategy"],
       "dependencies": {
         "strategy": {
           "oneOf": [
             {
               "properties": {
                 "strategy": {
-                  "enum": [
-                    "Connection String"
-                  ]
+                  "enum": ["Connection String"]
                 },
                 "stringWithPassword": {
                   "title": "Connection String",
@@ -95,21 +106,28 @@
                       "type": "string",
                       "description": "Enter the password. This value will be stored securely and will not be viewable by any user.",
                       "title": "Password"
+                    },
+                    "writeDiscovery": {
+                      "type": "boolean",
+                      "description": "Enables the auto discovery of outputs (Force disabled on lite version).",
+                      "default": false,
+                      "title": "Enable Output Discovery"
+                    },
+                    "disableDiscoverAllSchemas": {
+                      "type": "boolean",
+                      "description": "Disables the discovery of all schemas (Force enabled on lite version).",
+                      "default": true,
+                      "title": "Disable All Schemas Discovery"
                     }
                   },
-                  "required": [
-                    "connectionString",
-                    "password"
-                  ]
+                  "required": ["connectionString", "password"]
                 }
               }
             },
             {
               "properties": {
                 "strategy": {
-                  "enum": [
-                    "Form"
-                  ]
+                  "enum": ["Form"]
                 },
                 "form": {
                   "title": "Form",
@@ -135,6 +153,18 @@
                     "password": {
                       "type": "string",
                       "title": "Password"
+                    },
+                    "writeDiscovery": {
+                      "type": "boolean",
+                      "description": "Enables the auto discovery of outputs (Force disabled on lite version).",
+                      "default": false,
+                      "title": "Enable Output Discovery"
+                    },
+                    "disableDiscoverAllSchemas": {
+                      "type": "boolean",
+                      "description": "Disables the discovery of all schemas (Force enabled on lite version).",
+                      "default": true,
+                      "title": "Disable All Schemas Discovery"
                     }
                   },
                   "required": [
