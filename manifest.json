@@ -32,45 +32,21 @@
         "ui:help": "This is provided for advanced use cases where your connection has complex configuration settings."
       },
       "stringWithPassword": {
-        "ui:order": [
-          "connectionString",
-          "password",
-          "writeDiscovery",
-          "disableDiscoverAllSchemas"
-        ],
+        "ui:order": ["connectionString", "password"],
         "password": {
           "ui:widget": "password"
-        },
-        "writeDiscovery": {
-          "ui:disabled": true
-        },
-        "disableDiscoverAllSchemas": {
-          "ui:disabled": true
         }
       },
       "form": {
-        "ui:order": [
-          "hostname",
-          "port",
-          "serviceName",
-          "username",
-          "password",
-          "writeDiscovery",
-          "disableDiscoverAllSchemas"
-        ],
+        "ui:order": ["hostname", "port", "serviceName", "username", "password"],
         "password": {
           "ui:widget": "password"
-        },
-        "writeDiscovery": {
-          "ui:disabled": true
-        },
-        "disableDiscoverAllSchemas": {
-          "ui:disabled": true
         }
       }
     },
     "schema": {
       "title": "Oracle Database Connection Settings",
+      "description": "Automatic discovery is disabled on the lite version of the Oracle plugin.",
       "type": "object",
       "properties": {
         "strategy": {
@@ -106,18 +82,6 @@
                       "type": "string",
                       "description": "Enter the password. This value will be stored securely and will not be viewable by any user.",
                       "title": "Password"
-                    },
-                    "writeDiscovery": {
-                      "type": "boolean",
-                      "description": "Enables the auto discovery of outputs (Force disabled on lite version).",
-                      "default": false,
-                      "title": "Enable Output Discovery"
-                    },
-                    "disableDiscoverAllSchemas": {
-                      "type": "boolean",
-                      "description": "Disables the discovery of all schemas (Force enabled on lite version).",
-                      "default": true,
-                      "title": "Disable All Schemas Discovery"
                     }
                   },
                   "required": ["connectionString", "password"]
@@ -153,18 +117,6 @@
                     "password": {
                       "type": "string",
                       "title": "Password"
-                    },
-                    "writeDiscovery": {
-                      "type": "boolean",
-                      "description": "Enables the auto discovery of outputs (Force disabled on lite version).",
-                      "default": false,
-                      "title": "Enable Output Discovery"
-                    },
-                    "disableDiscoverAllSchemas": {
-                      "type": "boolean",
-                      "description": "Disables the discovery of all schemas (Force enabled on lite version).",
-                      "default": true,
-                      "title": "Disable All Schemas Discovery"
                     }
                   },
                   "required": [
